@@ -1,0 +1,111 @@
+@startuml
+
+entity "users" as users {
+  *id : bigint <<PK>>
+  --
+  username : varchar(100)
+  email : varchar(255)
+  password_hash : varchar(255)
+  created_at : timestamptz
+}
+
+entity "dictionaries" as dictionaries {
+  *id : bigint <<PK>>
+  --
+  user_id : bigint <<FK>>
+  title : varchar(200)
+  description : text
+  lang_from : varchar(16)
+  lang_to : varchar(16)
+  created_at : timestamptz
+}
+
+entity "entries" as entries {
+  *id : bigint <<PK>>
+  --
+  dictionary_id : bigint <<FK>>
+  text : text
+  normalized : text
+  transcription : varchar(100)
+  part_of_speech : varchar(50)
+  notes : text
+  created_at : timestamptz
+}
+
+entity "translations" as translations {
+  *id : bigint <<PK>>
+  --
+  entry_id : bigint <<FK>>
+  text : text
+  language : varchar(16)
+  is_primary : boolean
+}
+
+entity "examples" as examples {
+  *id : bigint <<PK>>
+  --
+  entry_id : bigint <<FK>>
+  text : text
+  translation : text
+}
+
+entity "tags" as tags {
+  *id : bigint <<PK>>
+  --
+  name : varchar(100)
+}
+
+entity "entry_tags" as entry_tags {
+  *entry_id : bigint <<PK>><<FK>>
+  *tag_id : bigint <<PK>><<FK>>
+}
+
+entity "cards" as cards {
+  *id : bigint <<PK>>
+  --
+  entry_id : bigint <<FK>>
+  card_type : varchar(30)
+  front_text : text
+  back_text : text
+  active : boolean
+  created_at : timestamptz
+}
+
+entity "study_progress" as study_progress {
+  *user_id : bigint <<PK>><<FK>>
+  *entry_id : bigint <<PK>><<FK>>
+  --
+  ease_factor : numeric(5,2)
+  interval_days : integer
+  repetition : integer
+  next_review_at : timestamptz
+  last_reviewed_at : timestamptz
+  correct_count : integer
+  wrong_count : integer
+}
+
+entity "review_attempts" as review_attempts {
+  *id : bigint <<PK>>
+  --
+  user_id : bigint <<FK>>
+  entry_id : bigint <<FK>>
+  card_id : bigint <<FK>>
+  attempted_at : timestamptz
+  result : smallint
+  quality : smallint
+  note : text
+}
+
+users ||--o{ dictionaries
+dictionaries ||--o{ entries
+entries ||--o{ translations
+entries ||--o{ examples
+entries ||--o{ cards
+entries ||--o{ entry_tags
+tags ||--o{ entry_tags
+users ||--o{ study_progress
+entries ||--o{ study_progress
+users ||--o{ review_attempts
+entries ||--o{ review_attempts
+cards ||--o{ review_attempts
+@enduml
